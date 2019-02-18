@@ -1,0 +1,29 @@
+#This is a simple neutral model for MTB population. It was run replicated 1000 times. The results after 1000 replicates were:
+ #average Tajima D= -0.2739154 sd=0.9106885
+ #average number of Segregating sites= 9.933735 sd=5.911715. 
+
+
+initialize() {
+	initializeMutationRate(1e-9);
+	initializeMutationType("m1", 1.0, "f", 0.0);
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, 441153);
+	initializeRecombinationRate(0);
+}
+1 {
+	sim.addSubpop("p1", 5000);
+	p1.setCloningRate(1.0);
+}
+late() {
+	// remove any new mutations added to the disabled diploid genomes
+	sim.subpopulations.individuals.genome2.removeMutations();
+	
+	// remove mutations in the haploid genomes that have fixed
+	muts = sim.mutationsOfType(m1);
+	freqs = sim.mutationFrequencies(NULL, muts);
+	sim.subpopulations.genomes.removeMutations(muts[freqs == 0.5], T);
+}
+50000 late() {
+	sim.outputFixedMutations();
+	p1.outputMSSample(10, replace=F, filePath="~/Desktop/1000replicates/ms.txt");
+}
