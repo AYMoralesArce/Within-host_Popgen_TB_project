@@ -1,0 +1,28 @@
+header <- "ms 10 1"
+tajd <- NULL
+f <- dir("~/slim_outputs/deleterious_091818", full.names = TRUE)
+header <- "ms 10 1"
+tajd <- NULL
+# loop for all files
+for (i in 1:length(f)){
+  onefile <- f[i]
+  tmp <- c(header, readLines(onefile))
+  write(tmp, "tmp.msout")
+  ms <- readMS("tmp.msout")
+  n <- neutrality.stats(ms)
+  gn <- get.neutrality(n)
+  tajd <- rbind(tajd, gn[[1]])
+  # sfs
+  
+}
+
+colnames(tajd) <- colnames(gn[[1]])
+
+#mean for Tajima's D
+mean(na.omit(tajd[,1]))
+sd(na.omit(tajd[,1]))
+
+#mean for segregating sites
+mean(na.omit(tajd[,2]))
+sd(na.omit(tajd[,2]))
+
