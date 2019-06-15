@@ -1,29 +1,79 @@
-#This is a simple neutral model for MTB population. It was run replicated 1000 times. The results after 1000 replicates were:
- #average Tajima D= -0.2739154 sd=0.9106885
- #average number of Segregating sites= 9.933735 sd=5.911715. 
+#This script can be run using SLiM-Gui by substituting variables values, or in command line as Slim Manual recommends. The scripts contains a neutral model for within-host MTB population (Morales-Arce et al. 2019). 
 
 
 initialize() {
-	initializeMutationRate(1e-9);
-	initializeMutationType("m1", 1.0, "f", 0.0);
-	initializeGenomicElementType("g1", m1, 1.0);
+	initializeMutationRate(mu);
+	initializeMutationType("m1", 1.0, "f", -0.001);   // weakly deleterious (actually Ne*s= 1 so it's effectively neutral
+	initializeMutationType("m2", 1.0, "f", -0.01);   // weakly deleterious Ne*s=10
+	initializeGenomicElementType("g1", c(m1,m2), c(1.0,1.0);
 	initializeGenomicElement(g1, 0, 441153);
 	initializeRecombinationRate(0);
-}
-1 {
-	sim.addSubpop("p1", 5000);
+}1 {
+	defineConstant("N",1000);
+	sim.addSubpop("p1", N);
 	p1.setCloningRate(1.0);
+	defineConstant("mmcgens2",c(10000:11000));
+	defineConstant("psi",p);
+	
+	if(psi!=0){
+		for(gen in mmcgens2){
+			
+			sim.registerEarlyEvent(NULL,s2.source, gen, gen);
+			sim.registerModifyChildCallback(NULL,s3.source,NULL,gen,gen);
+			sim.registerLateEvent(NULL,s4.source, gen, gen);
+		
+		}}
+	
+	sim.deregisterScriptBlock(s2);
+	sim.deregisterScriptBlock(s3);
+	sim.deregisterScriptBlock(s4);
 }
+
+
+s2 2 early(){
+	sim.addSubpopSplit(2,1,p1);
+	p1.setCloningRate(1.0);
+	p1.setMigrationRates(2, psi);
+	countingp1= N-round(N*psi);
+	countingother=round(N-countingp1);
+	countingp1=countingp1+(N-(countingp1+(countingother)));
+	p1.tag=asInteger(countingp1);
+	p2.tag=asInteger(countingother);
+}
+
+s3 2 modifyChild(){
+	if(subpop.id==1){
+		if (sourceSubpop.id==1 & p1.tag==0){
+			return(F);}
+		else if (sourceSubpop.tag==0){
+			return(F);}
+		else{
+			sourceSubpop.tag=asInteger(sourceSubpop.tag-1);
+			return(T);}}
+	else{return(T);}
+}
+
+
+s4 2 late(){
+	p2.setSubpopulationSize(0);
+}
+
+10001 {p1.setSubpopulationSize(b);} // "b" as bottleneck is replaced the number of genomes at the moment of infection
+10090 {p1.setSubpopulationSize(1000);}
+
 late() {
 	// remove any new mutations added to the disabled diploid genomes
 	sim.subpopulations.individuals.genome2.removeMutations();
 	
 	// remove mutations in the haploid genomes that have fixed
-	muts = sim.mutationsOfType(m1);
-	freqs = sim.mutationFrequencies(NULL, muts);
-	sim.subpopulations.genomes.removeMutations(muts[freqs == 0.5], T);
+	muts1 = sim.mutationsOfType(m1);
+	freqs1 = sim.mutationFrequencies(NULL, muts1);
+	sim.subpopulations.genomes.removeMutations(muts1[freqs1 == 0.5], T);
+	muts2 = sim.mutationsOfType(m2);
+	freqs2 = sim.mutationFrequencies(NULL, muts2);
+	sim.subpopulations.genomes.removeMutations(muts[freqs2 == 0.5], T);
 }
-50000 late() {
+11000 late() { 
 	sim.outputFixedMutations();
-	p1.outputMSSample(10, replace=F, filePath="~/Desktop/1000replicates/ms.txt");
+	p1.outputMSSample(100, replace=F, filePath="./ms.txt"); 
 }
