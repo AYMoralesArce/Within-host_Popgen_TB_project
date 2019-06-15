@@ -1,4 +1,4 @@
-#This script can be run using SLiM-Gui by substituting variables values, or in command line as Slim Manual recommends. The scripts contains a neutral model for within-host MTB population (Morales-Arce et al. 2019). 
+#This script can be run using SLiM-Gui by substituting variables values ("mu" by mutation rate value, "p" by progeny skew value, and "b" by N2 that is number of genomes at the moment of infection), or in command line as Slim Manual recommends. The scripts contains a neutral model for within-host MTB population (Morales-Arce et al. 2019). 
 
 
 initialize() {
